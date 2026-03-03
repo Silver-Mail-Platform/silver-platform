@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: clamav-server
-          image: ghcr.io/lsflk/silver-clamav:latest
+          image: clamav/clamav:latest
           env:
             - name: CLAMAV_NO_FRESHCLAMD
               value: "false"
