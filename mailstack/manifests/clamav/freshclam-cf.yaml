@@ -1,0 +1,28 @@
+apiVersion: v1
+data:
+  freshclam.conf: |
+    # Where virus definitions are stored
+    DatabaseDirectory /var/lib/clamav
+
+    # How often to check for updates (24 = hourly)
+    Checks 24
+
+    # Official ClamAV mirrors
+    DatabaseMirror database.clamav.net
+
+    # Keep scripted updates enabled (recommended)
+    ScriptedUpdates yes
+
+    # Validate databases before swapping them in
+    TestDatabases yes
+
+    # Reload clamd after a successful update
+    NotifyClamd yes
+
+    # Optional: run a command on update failure
+    # (useful later for alerting / flag files)
+    #OnErrorExecute /usr/local/bin/clamav-update-failed.sh
+kind: ConfigMap
+metadata:
+  name: clamav-freshclam-config
+  namespace: default

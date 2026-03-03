@@ -2,8 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: clamav-server
+  namespace: default
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: clamav-server
@@ -14,20 +17,22 @@ spec:
     spec:
       containers:
         - name: clamav-server
-          image: clamav/clamav:latest
+          image: ghcr.io/lsflk/silver-clamav:latest
           env:
             - name: CLAMAV_NO_FRESHCLAMD
               value: "false"
           resources:
-            requests:
-              memory: "1Gi"
             limits:
               memory: "3Gi"
           volumeMounts:
+            # Virus database
             - name: clamav-db
               mountPath: /var/lib/clamav
+
+            # Logs
             - name: clamav-logs
               mountPath: /var/log/clamav
+
       volumes:
         - name: clamav-db
           persistentVolumeClaim:
@@ -40,6 +45,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: clamav-db
+  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
@@ -51,6 +57,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: clamav-logs
+  namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
