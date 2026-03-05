@@ -9,23 +9,30 @@ import (
 	"github.com/Silver-Mail-Platform/super-platform/intake"
 )
 
+const (
+	defaultPort       = "8080"
+	readHeaderTimeout = 5 * time.Second
+	readTimeout       = 10 * time.Second
+	writeTimeout      = 10 * time.Second
+	idleTimeout       = 60 * time.Second
+)
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = defaultPort
 	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	ingestor := intake.NewLoggingIngestor(logger)
-	mux := intake.NewMux(ingestor, logger)
+	mux := intake.NewMux()
 
 	server := &http.Server{
 		Addr:              ":" + port,
 		Handler:           mux,
-		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       10 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       60 * time.Second,
+		ReadHeaderTimeout: readHeaderTimeout,
+		ReadTimeout:       readTimeout,
+		WriteTimeout:      writeTimeout,
+		IdleTimeout:       idleTimeout,
 	}
 
 	logger.Info("starting intake server", "addr", server.Addr)
