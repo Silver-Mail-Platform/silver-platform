@@ -15,9 +15,25 @@ spec:
       labels:
         app: clamav-server
     spec:
+      initContainers:
+        - name: freshclam-init
+          image: ghcr.io/lsflk/silver-clamav:latest
+          command:
+            - sh
+            - -lc
+            - >
+              freshclam --config-file=/etc/clamav/freshclam.conf --verbose
+              || (sleep 2; freshclam --config-file=/etc/clamav/freshclam.conf --verbose)
+          volumeMounts:
+            - name: clamav-db
+              mountPath: /var/lib/clamav
+            - name: freshclam-conf
+              mountPath: /etc/clamav/freshclam.conf
+              subPath: freshclam.conf
+
       containers:
         - name: clamav-server
-          image: clamav/clamav:latest
+          image: ghcr.io/lsflk/silver-clamav:latest
           env:
             - name: CLAMAV_NO_FRESHCLAMD
               value: "false"
@@ -25,13 +41,12 @@ spec:
             limits:
               memory: "3Gi"
           volumeMounts:
-            # Virus database
             - name: clamav-db
               mountPath: /var/lib/clamav
-
-            # Logs
             - name: clamav-logs
               mountPath: /var/log/clamav
+            - name: clamav-run
+              mountPath: /var/run/clamav
 
       volumes:
         - name: clamav-db
@@ -40,27 +55,8 @@ spec:
         - name: clamav-logs
           persistentVolumeClaim:
             claimName: clamav-logs
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: clamav-db
-  namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: clamav-logs
-  namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+        - name: clamav-run
+          emptyDir: {}
+        - name: freshclam-conf
+          configMap:
+            name: clamav-freshclam-config
